@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>店铺平面图</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="map-container"></div>
+
+  <!-- 评论模态框 -->
+  <div id="overlay"></div>
+  <div id="comment-modal" class="modal">
+    <textarea id="comment-input" placeholder="write a hint..."></textarea>
+    <p id="comment-display"></p>
+    <button id="save-comment-btn">save</button>
+    <button id="cancel-btn">
+      <img src="close-icon.png" alt="关闭" style="width: 20px; height: 20px;">
+    </button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const mapContainer = document.getElementById('map-container');
+    const overlay = document.getElementById('overlay');
+    const commentModal = document.getElementById('comment-modal');
+    const commentInput = document.getElementById('comment-input');
+    const commentDisplay = document.getElementById('comment-display');
+    const saveCommentBtn = document.getElementById('save-comment-btn');
+
+    let bubbles = [];
+    let activeBubble = null;
+    const userId = `${Date.now()}-${Math.random()}`; // 每个用户的唯一标识符
+
+    const BUBBLE_SIZE = 50;
+
+    function isClickInBubbleRange(x, y) {
+      return bubbles.some((bubble) => {
+        const bubbleElement = document.getElementById(`bubble-${bubble.id}`);
+        if (!bubbleElement) return false;
+
+        const rect = bubbleElement.getBoundingClientRect();
+        return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+      });
+    }
+
+    function renderBubbles() {
+      mapContainer.querySelectorAll('.bubble').forEach((bubble) => bubble.remove());
+
+      const now = Date.now();
+      bubbles.forEach((bubble) => {
+        if (bubble.expireTime <= now) return; // 跳过已过期气泡
+
+        const bubbleElement = document.createElement('div');
+        bubbleElement.id = `bubble-${bubble.id}`;
+        bubbleElement.className = 'bubble';
+        bubbleElement.style.left = `${bubble.x}px`;
+        bubbleElement.style.top = `${bubble.y}px`;
+
+        const bubbleImg = document.createElement('img');
+        bubbleImg.src = 'cd.png';
+        bubbleElement.appendChild(bubbleImg);
+
+        bubbleElement.addEventListener('click', (event) => {
+          event.stopPropagation();
+          activeBubble = bubble;
+          openCommentModal(bubble);
+        });
+
+        mapContainer.appendChild(bubbleElement);
+      });
+    }
+
+    function openCommentModal(bubble) {
+      if (bubble.creatorId === userId) {
+        commentInput.style.display = 'block';
+        commentDisplay.style.display = 'none';
+        saveCommentBtn.style.display = 'inline-block';
+        commentInput.value = bubble.comment || '';
+      } else {
+        commentInput.style.display = 'none';
+        commentDisplay.style.display = 'block';
+        saveCommentBtn.style.display = 'none';
+        commentDisplay.textContent = bubble.comment || '无评论';
+      }
+
+      overlay.style.display = 'block';
+      commentModal.style.display = 'block';
+    }
+
+    function closeCommentModal() {
+      overlay.style.display = 'none';
+      commentModal.style.display = 'none';
+      activeBubble = null;
+    }
+
+    mapContainer.addEventListener('click', (event) => {
+      const x = event.clientX;
+      const y = event.clientY;
+
+      if (isClickInBubbleRange(x, y)) return;
+
+      const offsetX = event.offsetX;
+      const offsetY = event.offsetY;
+
+      const expireTime = Date.now() + 20 * 60 * 1000; // 20 分钟后过期
+      const newBubble = {
+        id: Date.now(),
+        x: offsetX,
+        y: offsetY,
+        comment: '',
+        creatorId: userId,
+        expireTime,
+      };
+
+      bubbles.push(newBubble);
+      socket.emit('add-bubble', newBubble);
+      renderBubbles();
+    });
+
+    saveCommentBtn.addEventListener('click', () => {
+      if (activeBubble) {
+        activeBubble.comment = commentInput.value;
+        socket.emit('update-bubble', activeBubble);
+      }
+      closeCommentModal();
+    });
+
+    document.getElementById('cancel-btn').addEventListener('click', closeCommentModal);
+
+    socket.on('sync-bubbles', (serverBubbles) => {
+      bubbles = serverBubbles;
+      renderBubbles();
+    });
+  </script>
+</body>
+</html>

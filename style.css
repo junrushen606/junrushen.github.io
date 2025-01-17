@@ -1,0 +1,154 @@
+/* 地图容器样式 */
+#map-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  background-image: url('your_floor_plan_image.jpg'); /* 替换为您的平面图图片路径 */
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+/* 气泡样式 */
+.bubble {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  cursor: pointer;
+  animation: blink 1s infinite;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.bubble:hover {
+  transform: scale(1.1);
+}
+
+.bubble img {
+  width: 30px;
+  height: 30px;
+}
+
+/* 评论模态框背景遮罩 */
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: none;
+  z-index: 9;
+}
+
+/* 评论模态框 */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #ffffff;
+  padding: 20px 25px;
+  width: 300px; /* 减小宽度 */
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  display: none;
+  z-index: 10;
+  animation: fadeIn 0.3s ease-in-out;
+  text-align: center; /* 中心对齐 */
+}
+
+/* 评论输入框 */
+textarea {
+  width: 90%; /* 减小宽度 */
+  height: 150px; /* 增大高度 */
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  resize: none;
+  font-size: 16px; /* 增大字体 */
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  outline: none;
+  transition: border 0.2s ease-in-out;
+  margin-bottom: 25px; /* 增加与按钮的间距 */
+  margin-top: 20px; /* 增加向下的距离 */
+}
+
+textarea:focus {
+  border: 1px solid #007bff;
+}
+
+/* 评论展示文本 */
+#comment-display {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 15px;
+  white-space: pre-wrap;
+}
+
+/* 关闭按钮 */
+#cancel-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+}
+
+#cancel-btn img {
+  width: 20px;
+  height: 20px;
+}
+
+#cancel-btn:hover {
+  color: #333;
+}
+
+/* 保存按钮 */
+#save-comment-btn {
+  display: block;
+  width: 100%;
+  padding: 10px 0;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+#save-comment-btn:hover {
+  background-color: #0056b3;
+}
+
+/* 动画效果 */
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -55%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
